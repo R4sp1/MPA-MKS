@@ -68,18 +68,27 @@ static void blink(){
 }
 
 static void button(){
-
-  static uint32_t old_s1;
-  uint32_t new_s1 = LL_GPIO_IsInputPinSet(S1_GPIO_Port, S1_Pin);
   static uint32_t off_time;
 
-  if(old_s1 && !new_s1){
-    off_time = Tick + LED_TIME_LONG;
-    LL_GPIO_SetOutputPin(LED2_GPIO_Port, LED2_Pin);
-  }
-  old_s1 = new_s1;
+  // New debounce
+  static uint16_t debounce = 0xFFFF;
 
+    // Periodic debouncing
+    debounce <<= 1;
+    if (LL_GPIO_IsInputPinSet(S1_GPIO_Port, S1_Pin)) {
+        debounce |= 0x0001;
+    }
 
+    // Check for debounced rising edge
+    if (debounce == 0x7FFF) {
+        // Handle debounced rising edge
+        LL_GPIO_SetOutputPin(LED2_GPIO_Port, LED2_Pin);
+        // Set a timer to turn off LED2 after a defined time
+        off_time = Tick + LED_TIME_LONG;
+        LL_GPIO_SetOutputPin(LED2_GPIO_Port, LED2_Pin);
+    }
+
+  // Old debounce
   static uint32_t old_s2;
   uint32_t new_s2 = LL_GPIO_IsInputPinSet(S2_GPIO_Port, S2_Pin);
 
