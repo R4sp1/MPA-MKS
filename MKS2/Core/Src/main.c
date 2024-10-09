@@ -32,7 +32,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define BLINK_TIME 300
-#define BUTTON_PERIOD 40
+#define BUTTON_PERIOD 5
 #define LED_TIME_SHORT 100
 #define LED_TIME_LONG 1000
 /* USER CODE END PD */
@@ -82,7 +82,6 @@ static void button(){
     // Check for debounced rising edge
     if (debounce == 0x7FFF) {
         // Handle debounced rising edge
-        LL_GPIO_SetOutputPin(LED2_GPIO_Port, LED2_Pin);
         // Set a timer to turn off LED2 after a defined time
         off_time = Tick + LED_TIME_LONG;
         LL_GPIO_SetOutputPin(LED2_GPIO_Port, LED2_Pin);
