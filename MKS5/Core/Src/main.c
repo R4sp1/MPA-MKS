@@ -64,12 +64,7 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-int _write(int file, char const *buf, int n)
-{
- /* stdout redirection to UART2 */
- HAL_UART_Transmit(&huart2, (uint8_t*)(buf), n, HAL_MAX_DELAY);
- return n;
-}
+
 
 static void uart_process_command(char *data)
 {
@@ -280,6 +275,13 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+int _write(int file, char const *buf, int n)
+{
+ /* stdout redirection to UART2 */
+ HAL_UART_Transmit(&huart2, (uint8_t*)(buf), n, HAL_MAX_DELAY);
+ return n;
+ 
+}
 /* USER CODE END 4 */
 
 /**
