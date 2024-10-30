@@ -109,20 +109,85 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    uint32_t value = HAL_ADC_GetValue(&hadc);
-    sct_value(data[value], 0);
-    HAL_Delay(100);
-    /*
-    OWConvertAll();
-    HAL_Delay(CONVERT_T_DELAY);
-  
-    int16_t result;
-    uint8_t status = OWReadTemperature(&result);
+    static uint32_t stateChangeTime = 0;
+    int16_t temp_DS;
+		int16_t temp_ntc;
+		static enum FSM
+		{
+			DF, DALLAS, NTC
+		} state;
 
-    if(status != 0){
-      sct_value(result/10, 0);
+		static uint32_t cTick_DS;
+		if (HAL_GetTick() > cTick_DS + 750)
+		{
+			OWConvertAll();
+			if (OWReadTemperature(&temp_DS) != 0)
+			{
+				temp_DS = temp_DS / 10;
+			}
+			cTick_DS = HAL_GetTick();
+		}
+
+		static uint32_t cTick_ntc;
+		if (HAL_GetTick() > cTick_ntc + 500)
+		{
+			int16_t adc;
+			adc = HAL_ADC_GetValue(&hadc);
+			temp_ntc = data[adc];
+			cTick_ntc = HAL_GetTick();
+		}
+
+    static uint32_t lastDebounceTime_S2 = 0;
+    static uint32_t lastDebounceTime_S1 = 0;
+    static const uint32_t debounceDelay = 50; // 50 ms debounce delay
+
+    if (HAL_GPIO_ReadPin(S2_GPIO_Port, S2_Pin) == 0)
+    {
+      if (HAL_GetTick() - lastDebounceTime_S2 > debounceDelay)
+      {
+        state = NTC;
+      }
+      lastDebounceTime_S2 = HAL_GetTick();
+      stateChangeTime = HAL_GetTick();
     }
-    */
+
+    if (HAL_GPIO_ReadPin(S1_GPIO_Port, S1_Pin) == 0)
+    {
+      if (HAL_GetTick() - lastDebounceTime_S1 > debounceDelay)
+      {
+        state = DALLAS;
+      }
+      lastDebounceTime_S1 = HAL_GetTick();
+      stateChangeTime = HAL_GetTick();
+    }
+
+  
+    if (HAL_GetTick() - stateChangeTime > 30000) // 30 seconds
+    {
+      state = DF; // Reset to default state
+      stateChangeTime = HAL_GetTick();
+    }
+
+    switch (state)
+    {
+    case DF:
+      sct_value(0, 0, 3);
+      HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
+      HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
+      break;
+    case DALLAS:
+      sct_value(temp_DS, 0, 1);
+      HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
+      HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
+      break;
+    case NTC:
+      sct_value(temp_ntc, 0, 1);
+      HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
+      HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
+      break;
+    default:
+      break;
+    }
 
     /* USER CODE END WHILE */
 
