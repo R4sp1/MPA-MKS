@@ -98,6 +98,7 @@ void sct_value(uint16_t value, uint16_t led){
 
     // LED bar
     reg |= reg_values[3][led];   // Set value of LED
+    
 
 	sct_led(reg);   // Send value to sct_led function
 }
