@@ -58,6 +58,8 @@ static void MX_USART3_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+// send mouse report
 static void step(int8_t x, int8_t y, int8_t btn){
   uint8_t buff[4];
   buff[0] = btn;        // 1: left click, 2: right click, 0: none
@@ -68,6 +70,7 @@ static void step(int8_t x, int8_t y, int8_t btn){
   HAL_Delay(USBD_HID_GetPollingInterval(&hUsbDeviceFS));
 }
 
+// draw full circle with radius r
 static void circle(int8_t r){
   for(int i = 0; i < 361; i++){
     step(r * cosf(i * M_PI / 180.0), r * sinf(i * M_PI / 180.0), 1);
@@ -75,6 +78,7 @@ static void circle(int8_t r){
   step(0,0,0);
 }
 
+// draw half-circle (smile) with radius r
 static void smile(int8_t r){
   for(int i = 90; i < 270; i++){
     step(r * cosf(i * M_PI / 180.0), r * sinf(i * M_PI / 180.0), 1);
@@ -123,17 +127,24 @@ int main(void)
   while (1)
   {
     if(HAL_GPIO_ReadPin(USER_Btn_GPIO_Port, USER_Btn_Pin)){
+      // draw head
       circle(5);
-      step(-40,30,0);
-      circle(2);
-      step(80,0,0);
-      circle(2);
-      step(-40,40,0);
-      step(0,0,1);
-      step(0,30,1);
-      step(0,0,0);
-      step(55,12,0);
-      smile(4);
+
+      // draw eyes
+      step(-40,30,0); // move to the position of the left eye
+      circle(2);      // draw left eye
+      step(80,0,0);   // move to the position of the right eye
+      circle(2);      // draw right eye
+
+      // draw nose
+      step(-40,40,0); // move to the position of the nose
+      step(0,0,1);    // click the left button
+      step(0,30,1);   // draw the nose
+      step(0,0,0);    // release the left button
+
+      // draw mouth
+      step(55,12,0);  // move to the position of the mouth
+      smile(4);       // draw the mouth
     }
     /* USER CODE END WHILE */
 
