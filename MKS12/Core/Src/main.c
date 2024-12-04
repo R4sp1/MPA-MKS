@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "usbd_hid.h"
+#include <math.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -66,6 +67,20 @@ static void step(int8_t x, int8_t y, int8_t btn){
   USBD_HID_SendReport(&hUsbDeviceFS, buff, sizeof(buff));
   HAL_Delay(USBD_HID_GetPollingInterval(&hUsbDeviceFS));
 }
+
+static void circle(int8_t r){
+  for(int i = 0; i < 361; i++){
+    step(r * cosf(i * M_PI / 180.0), r * sinf(i * M_PI / 180.0), 1);
+  }
+  step(0,0,0);
+}
+
+static void smile(int8_t r){
+  for(int i = 90; i < 270; i++){
+    step(r * cosf(i * M_PI / 180.0), r * sinf(i * M_PI / 180.0), 1);
+  }
+  step(0,0,0);
+}
 /* USER CODE END 0 */
 
 /**
@@ -108,7 +123,17 @@ int main(void)
   while (1)
   {
     if(HAL_GPIO_ReadPin(USER_Btn_GPIO_Port, USER_Btn_Pin)){
-      step(10, -5, 0);
+      circle(5);
+      step(-40,30,0);
+      circle(2);
+      step(80,0,0);
+      circle(2);
+      step(-40,40,0);
+      step(0,0,1);
+      step(0,30,1);
+      step(0,0,0);
+      step(55,12,0);
+      smile(4);
     }
     /* USER CODE END WHILE */
 
